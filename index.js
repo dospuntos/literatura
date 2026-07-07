@@ -27,6 +27,13 @@ const game = new Phaser.Game(config);
 let cursors;
 let player;
 let showDebug = false;
+let promptText;
+let eKey;
+let hKey;
+let activePoint = null;
+let debugText;
+let speed = 175;
+let gameEnded = false;
 
 function preload() {
   this.load.image("tiles", "./assets/tilesets/tuxmon-sample-32px-extruded.png");
@@ -58,6 +65,9 @@ function create() {
 
   worldLayer.setCollisionByProperty({ collides: true });
 
+  // Set physics bounds
+  this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
   // By default, everything gets depth sorted on the screen in the order we created things. Here, we
   // want the "Above Player" layer to sit on top of the player, so we explicitly give it a depth.
   // Higher depths will sit on top of lower depth objects.
@@ -76,6 +86,8 @@ function create() {
     .sprite(spawnPoint.x, spawnPoint.y, "atlas", "misa-front")
     .setSize(30, 40)
     .setOffset(0, 24);
+
+  player.setCollideWorldBounds(true);
 
   // Watch the player and worldLayer for collisions, for the duration of the scene:
   this.physics.add.collider(player, worldLayer);
@@ -134,20 +146,51 @@ function create() {
 
   cursors = this.input.keyboard.createCursorKeys();
 
+  // on-screen debug readout
+  debugText = this.add
+    .text(16, 550, "", {
+      font: "14px monospace",
+      fill: "#ffffff",
+      backgroundColor: "#000000aa",
+      padding: { x: 8, y: 4 },
+    })
+    .setScrollFactor(0)
+    .setDepth(30);
+
+  // floating "Press E" prompt, hidden by default
+  promptText = this.add
+    .text(0, 0, "Presione E", {
+      font: "14px monospace",
+      fill: "#ffffff",
+      backgroundColor: "#000000aa",
+      padding: { x: 6, y: 3 },
+    })
+    .setDepth(30)
+    .setVisible(false);
+
+  eKey = this.input.keyboard.addKey("E");
+  hKey = this.input.keyboard.addKey("H");
+
   // Help text that has a "fixed" position on the screen
   this.add
-    .text(16, 16, 'Arrow keys to move\nPress "D" to show hitboxes', {
-      font: "18px monospace",
-      fill: "#000000",
-      padding: { x: 20, y: 10 },
-      backgroundColor: "#ffffff",
-    })
+    .text(
+      16,
+      16,
+      'Flechas para mover\n"D" para correr (debug)\n"H" para ayuda',
+      {
+        font: "18px monospace",
+        fill: "#000000",
+        padding: { x: 20, y: 10 },
+        backgroundColor: "#ffffff",
+      },
+    )
     .setScrollFactor(0)
     .setDepth(30);
 
   // Debug graphics
   this.input.keyboard.once("keydown-D", (event) => {
-    // Turn on physics debugging to show player's hitbox
+    speed = 400;
+    /* // Turn on physics debugging to show player's hitbox
     this.physics.world.createDebugGraphic();
 
     // Create worldLayer collision graphic above the player, but below the help text
@@ -156,13 +199,24 @@ function create() {
       tileColor: null, // Color of non-colliding tiles
       collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
       faceColor: new Phaser.Display.Color(40, 39, 37, 255), // Color of colliding face edges
-    });
+    }); */
   });
 }
 
 function update(time, delta) {
-  const speed = 175;
   const prevVelocity = player.body.velocity.clone();
+
+  if (Phaser.Input.Keyboard.JustDown(hKey)) {
+    toggleHelp();
+  }
+
+  if (dialogOpen) {
+    player.body.setVelocity(0);
+    player.anims.stop();
+    return;
+  }
+
+  if (gameEnded) return;
 
   // Stop any previous movement from the last frame
   player.body.setVelocity(0);
@@ -202,4 +256,62 @@ function update(time, delta) {
     else if (prevVelocity.y < 0) player.setTexture("atlas", "misa-back");
     else if (prevVelocity.y > 0) player.setTexture("atlas", "misa-front");
   }
+
+  // check proximity to interaction points
+  activePoint = null;
+  for (const point of interactionPoints) {
+    const dist = Phaser.Math.Distance.Between(
+      player.x,
+      player.y,
+      point.x,
+      point.y,
+    );
+    if (dist < point.radius) {
+      activePoint = point;
+      break;
+    }
+  }
+
+  if (activePoint) {
+    promptText
+      .setVisible(true)
+      .setPosition(activePoint.x - 30, activePoint.y - 50);
+  } else {
+    promptText.setVisible(false);
+  }
+
+  if (Phaser.Input.Keyboard.JustDown(eKey)) {
+    if (dialogOpen) {
+      closeModal();
+    } else if (activePoint) {
+      if (activePoint.type === "teleport") {
+        player.setPosition(
+          activePoint.destination.x,
+          activePoint.destination.y,
+        );
+      } else if (activePoint.type === "end") {
+        endGame(activePoint);
+      } else {
+        openModal(activePoint);
+      }
+    }
+  }
+
+  // update debug readout every frame
+  debugText.setText(`x: ${Math.round(player.x)}, y: ${Math.round(player.y)}`);
+}
+
+function endGame(point) {
+  dialogOpen = true;
+  gameEnded = true;
+  promptText.setVisible(false);
+
+  modalContent.innerHTML = `
+    <div id="modal-title">${point.title || "Fin"}</div>
+    <p id="modal-message">${point.message}</p>
+  `;
+  modalOverlay.classList.remove("hidden");
+
+  // hide the close button — there's nothing to go back to
+  modalClose.style.display = "none";
 }
