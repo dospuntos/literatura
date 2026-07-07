@@ -2,16 +2,20 @@ const modalOverlay = document.getElementById("modal-overlay");
 const modalContent = document.getElementById("modal-content");
 const modalClose = document.getElementById("modal-close");
 
-let dialogOpen = false; // now a true global, shared with index.js
+let dialogOpen = false;
 
 const helpOverlay = document.getElementById("help-overlay");
 let helpOpen = false;
 
 function toggleHelp() {
-  if (dialogOpen && !helpOpen) return; // don't open help over an active interaction dialog
-  helpOpen = !helpOpen;
-  dialogOpen = helpOpen; // reuses your existing movement-freeze logic
-  helpOverlay.classList.toggle("hidden", !helpOpen);
+  if (dialogOpen && !helpOpen) return; // an interaction/end dialog is open — ignore H
+  if (helpOpen) {
+    closeModal();
+  } else {
+    helpOpen = true;
+    dialogOpen = true;
+    helpOverlay.classList.remove("hidden");
+  }
 }
 
 function openModal(point) {
@@ -44,8 +48,13 @@ function openModal(point) {
 
 function closeModal() {
   dialogOpen = false;
-  modalOverlay.classList.add("hidden");
-  modalContent.innerHTML = "";
+  if (helpOpen) {
+    helpOpen = false;
+    helpOverlay.classList.add("hidden");
+  } else {
+    modalOverlay.classList.add("hidden");
+    modalContent.innerHTML = "";
+  }
 }
 
 document.addEventListener("keydown", (event) => {

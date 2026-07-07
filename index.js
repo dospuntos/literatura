@@ -159,7 +159,7 @@ function create() {
 
   // floating "Press E" prompt, hidden by default
   promptText = this.add
-    .text(0, 0, "Presione E", {
+    .text(0, 0, "Presiona E", {
       font: "14px monospace",
       fill: "#ffffff",
       backgroundColor: "#000000aa",
@@ -176,7 +176,7 @@ function create() {
     .text(
       16,
       16,
-      'Flechas para mover\n"D" para correr (debug)\n"H" para ayuda',
+      'Flechas para mover\n"H" para ayuda\n"D" para correr (debug)',
       {
         font: "18px monospace",
         fill: "#000000",

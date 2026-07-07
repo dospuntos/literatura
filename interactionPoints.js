@@ -14,7 +14,7 @@ const interactionPoints = [
     y: 840,
     radius: 50,
     type: "text",
-    title: "Casillero de Correo",
+    title: "Buzón",
     message:
       "«La libertad, Sancho, es uno de los más preciosos dones que a los hombres dieron los cielos.»",
     source: "Miguel de Cervantes",
@@ -24,7 +24,7 @@ const interactionPoints = [
     y: 840,
     radius: 50,
     type: "text",
-    title: "Casillero de Correo",
+    title: "Buzón",
     message:
       "«Podrán cortar todas las flores, pero no podrán detener la primavera.»",
     source: "Pablo Neruda",
