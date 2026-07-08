@@ -147,7 +147,7 @@ function create() {
   cursors = this.input.keyboard.createCursorKeys();
 
   // on-screen debug readout
-  debugText = this.add
+  /*  debugText = this.add
     .text(16, 550, "", {
       font: "14px monospace",
       fill: "#ffffff",
@@ -155,7 +155,7 @@ function create() {
       padding: { x: 8, y: 4 },
     })
     .setScrollFactor(0)
-    .setDepth(30);
+    .setDepth(30); */
 
   // floating "Press E" prompt, hidden by default
   promptText = this.add
@@ -173,17 +173,12 @@ function create() {
 
   // Help text that has a "fixed" position on the screen
   this.add
-    .text(
-      16,
-      16,
-      'Flechas para mover\n"H" para ayuda\n"D" para correr (debug)',
-      {
-        font: "18px monospace",
-        fill: "#000000",
-        padding: { x: 20, y: 10 },
-        backgroundColor: "#ffffff",
-      },
-    )
+    .text(16, 16, 'Flechas para mover\n"H" para ayuda', {
+      font: "18px monospace",
+      fill: "#000000",
+      padding: { x: 20, y: 10 },
+      backgroundColor: "#ffffff",
+    })
     .setScrollFactor(0)
     .setDepth(30);
 
@@ -298,7 +293,7 @@ function update(time, delta) {
   }
 
   // update debug readout every frame
-  debugText.setText(`x: ${Math.round(player.x)}, y: ${Math.round(player.y)}`);
+  //debugText.setText(`x: ${Math.round(player.x)}, y: ${Math.round(player.y)}`);
 }
 
 function endGame(point) {
